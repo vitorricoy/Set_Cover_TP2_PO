@@ -2,65 +2,90 @@ import numpy as np
 import math
 
 def lerEntrada():
+    # Lê os valores n e m
     n, m = input().split()
     n = int(n)
     m = int(m)
 
+    # Lê o vetor de custos
     custos = input().split()
     custos = list(map(int, custos))
 
-    matrizSubConjuntos = []
+    # Lê a matriz A
+    matrizSubconjuntos = []
     for i in range(n):
         linhaMatriz = input().split()
         linhaMatriz = list(map(int, linhaMatriz))
-        matrizSubConjuntos.append(linhaMatriz)
+        matrizSubconjuntos.append(linhaMatriz)
 
-    matrizSubConjuntos = np.array(matrizSubConjuntos)
+    # Converte a matriz e o vetor para arrays numpy
+    matrizSubconjuntos = np.array(matrizSubconjuntos)
     custos = np.array(custos)
-    return n, m, custos, matrizSubConjuntos
 
-def executarAlgoritmo(n, m, custos, matrizSubConjuntos):
-    x = np.zeros((1, n))
-    c = set()
-    verticesCobertos = set()
-    matrizSubConjuntosTransposta = matrizSubConjuntos.T
+    # Retorna os valores lidos
+    return n, m, custos, matrizSubconjuntos
 
-    while len(verticesCobertos) < n:
+def executarAlgoritmo(n, m, custos, matrizSubconjuntos):
+    # Declara o vetor x, inicialmente composto apenas de zeros
+    vetorX = np.zeros((1, n))
+    
+    # Declara os conjuntos de elementos cobertos e subconjuntos escolhidos
+    subconjuntosEscolhidos = set()
+    elementosCobertos = set()
+
+    # Salva a matriz de subconjuntos transposta, pois ela é mais usada nos cálculos
+    matrizSubconjuntosTransposta = matrizSubconjuntos.T
+
+    # Enquanto existir elementos que não foram cobertos ainda
+    while len(elementosCobertos) < n:
+        # Encontra o elemento de menor índice não coberto
         faltante = -1
         for i in range(n):
-            if not i in verticesCobertos:
+            if not i in elementosCobertos:
                 faltante = i
                 break
+
+        # Encontra o maior aumento possível da entrada do elemento não coberto em x
+        # de forma que A.T@x <= c continue viável
         maiorAumentoPossivel = math.inf
         linhaMaiorAumento = -1
         for i in range(m):
-            if matrizSubConjuntosTransposta[i, faltante] == 1:
-                falta = custos[i] - matrizSubConjuntosTransposta[i]@x.T
+            if matrizSubconjuntosTransposta[i, faltante] == 1:
+                falta = custos[i] - matrizSubconjuntosTransposta[i]@vetorX.T
                 if falta < maiorAumentoPossivel:
                     maiorAumentoPossivel = falta
                     linhaMaiorAumento = i
-        x[0, faltante] += maiorAumentoPossivel
-        produto = matrizSubConjuntosTransposta@x.T
+        
+        # Altera o vetor x para que esse maior aumento possível seja feito
+        vetorX[0, faltante] += maiorAumentoPossivel
+
+        # Salva no conjunto de elementos cobertos os elementos que o subconjunto
+        # escolhido cobre
         conjuntoAdicionado = linhaMaiorAumento
         for i in range(n):
-            if matrizSubConjuntosTransposta[conjuntoAdicionado, i] == 1:
-                verticesCobertos.add(i)
-        c.add(conjuntoAdicionado)
-    return x, c
+            if matrizSubconjuntosTransposta[conjuntoAdicionado, i] == 1:
+                elementosCobertos.add(i)
 
-def printarSaida(m, x, c):
+        # Adiciona o subconjunto escolhido no conjunto de subconjuntos
+        subconjuntosEscolhidos.add(conjuntoAdicionado)
+    # Retorna o vetor x e os subconjuntos escolhidos
+    return vetorX, subconjuntosEscolhidos
+
+def printarSaida(m, vetorX, subconjuntosEscolhidos):
+    # Imprime os subconjuntos escolhidos
     for i in range(m):
-        if i in c:
+        if i in subconjuntosEscolhidos:
             print(1, end = ' ')
         else:
             print(0, end = ' ')
     print()
 
-    for el in x[0]:
+    # Imprime o vetor x
+    for el in vetorX[0]:
         print(int(el), end = ' ')
     print()
 
 if __name__ == '__main__':
-    n, m, custos, matrizSubConjuntos = lerEntrada()
-    x, c = executarAlgoritmo(n, m, custos, matrizSubConjuntos)
-    printarSaida(m, x, c)
+    n, m, custos, matrizSubconjuntos = lerEntrada()
+    vetorX, subconjuntosEscolhidos = executarAlgoritmo(n, m, custos, matrizSubconjuntos)
+    printarSaida(m, vetorX, subconjuntosEscolhidos)
