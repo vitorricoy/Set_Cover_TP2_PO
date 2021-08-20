@@ -33,8 +33,9 @@ def executarAlgoritmo(n, m, custos, matrizSubconjuntos):
     subconjuntosEscolhidos = set()
     elementosCobertos = set()
 
-    # Salva a matriz de subconjuntos transposta, pois ela é mais usada nos cálculos
-    matrizSubconjuntosTransposta = matrizSubconjuntos.T
+    # Salva o resultado c-A.T@x para evitar realizar a multiplicação de matrizes
+    # a cada iteração
+    linhasCustosMenosMatrizT = custos
 
     # Enquanto existir elementos que não foram cobertos ainda
     while len(elementosCobertos) < n:
@@ -50,12 +51,18 @@ def executarAlgoritmo(n, m, custos, matrizSubconjuntos):
         maiorAumentoPossivel = math.inf
         linhaMaiorAumento = -1
         for i in range(m):
-            if matrizSubconjuntosTransposta[i, faltante] == 1:
-                falta = custos[i] - matrizSubconjuntosTransposta[i]@vetorX.T
+            if matrizSubconjuntos[faltante, i] == 1:
+                falta = linhasCustosMenosMatrizT[i]
                 if falta < maiorAumentoPossivel:
                     maiorAumentoPossivel = falta
                     linhaMaiorAumento = i
         
+        # Atualiza o vetor linhasCustosMenosMatrizT com os novos valores do vetor x
+        # Ou seja, atualiza o resultado de c-A.T@x
+        for i in range(m):
+            if matrizSubconjuntos[faltante, i] == 1:
+                linhasCustosMenosMatrizT -= maiorAumentoPossivel
+
         # Altera o vetor x para que esse maior aumento possível seja feito
         vetorX[0, faltante] += maiorAumentoPossivel
 
